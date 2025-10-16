@@ -6,9 +6,9 @@ output "subnet_b_id" {
   value = aws_subnet.subnet_b.id
 }
 
-output "subnet_c_id" {
-  value = aws_subnet.subnet_c.id
-}
+# output "subnet_c_id" {
+#   value = aws_subnet.subnet_c.id
+# }
 
 output "vpc_id" {
   value = aws_vpc.vpc.id
