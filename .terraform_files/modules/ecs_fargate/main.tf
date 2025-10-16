@@ -123,7 +123,7 @@ resource "aws_ecs_service" "backend" {
     subnets = [
       var.subnet_a_id,
       var.subnet_b_id,
-      var.subnet_c_id
+      # var.subnet_c_id
     ]
     security_groups  = [aws_security_group.ecs.id]
     assign_public_ip = true

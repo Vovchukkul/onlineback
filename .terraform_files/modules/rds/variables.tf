@@ -18,10 +18,10 @@ variable "subnet_b_id" {
   type        = string
 }
 
-variable "subnet_c_id" {
-  description = "Subnet C ID"
-  type        = string
-}
+# variable "subnet_c_id" {
+#   description = "Subnet C ID"
+#   type        = string
+# }
 
 variable "vpc_id" {
   description = "VPC ID"

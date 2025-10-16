@@ -31,7 +31,7 @@ resource "aws_db_instance" "db" {
 
 resource "aws_db_subnet_group" "db-sg" {
   name       = "${var.prefix}-subnet"
-  subnet_ids = [var.subnet_a_id, var.subnet_b_id, var.subnet_c_id]
+  subnet_ids = [var.subnet_a_id, var.subnet_b_id]
   tags = {
     Name = "RDS subnet group"
   }

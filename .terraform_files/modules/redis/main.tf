@@ -2,7 +2,7 @@ module "elasticache-redis" {
   source                     = "cloudposse/elasticache-redis/aws"
   version                    = "1.2.2"
   vpc_id                     = var.vpc_id
-  subnets                    = [var.subnet_a_id, var.subnet_b_id, var.subnet_c_id]
+  subnets                    = [var.subnet_a_id, var.subnet_b_id]
   allowed_security_group_ids = [var.ecs_sg]
   at_rest_encryption_enabled = true
   transit_encryption_enabled = false

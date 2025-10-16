@@ -4,7 +4,7 @@ resource "aws_lb" "backend" {
   subnets = [
     var.subnet_a_id,
     var.subnet_b_id,
-    var.subnet_c_id
+    # var.subnet_c_id
   ]
   ip_address_type = "dualstack-without-public-ipv4"
 

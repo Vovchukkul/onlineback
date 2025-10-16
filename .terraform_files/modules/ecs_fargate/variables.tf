@@ -18,10 +18,10 @@ variable "subnet_b_id" {
   type        = string
 }
 
-variable "subnet_c_id" {
-  description = "Subnet C ID"
-  type        = string
-}
+# variable "subnet_c_id" {
+#   description = "Subnet C ID"
+#   type        = string
+# }
 
 variable "lb_target_group_arn" {
   description = "ARN of the target group to attach to the load balancer"

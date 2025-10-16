@@ -76,7 +76,7 @@ module "ecs_fargate" {
   prefix              = local.prefix
   subnet_a_id         = module.vpc.subnet_a_id
   subnet_b_id         = module.vpc.subnet_b_id
-  subnet_c_id         = module.vpc.subnet_c_id
+  # subnet_c_id         = module.vpc.subnet_c_id
   lb_target_group_arn = module.load_balancer.lb_target_group_arn
   vpc_id              = module.vpc.vpc_id
   alb_sg              = module.load_balancer.alb_sg
@@ -114,7 +114,7 @@ module "load_balancer" {
   prefix                 = local.prefix
   subnet_a_id            = module.vpc.subnet_a_id
   subnet_b_id            = module.vpc.subnet_b_id
-  subnet_c_id            = module.vpc.subnet_c_id
+  # subnet_c_id            = module.vpc.subnet_c_id
   vpc_id                 = module.vpc.vpc_id
   acm_certificate_arn_be = module.certificate.acm_certificate_arn_be
   app_port               = var.app_port
@@ -127,7 +127,7 @@ module "rds" {
   prefix                     = local.prefix
   subnet_a_id                = module.vpc.subnet_a_id
   subnet_b_id                = module.vpc.subnet_b_id
-  subnet_c_id                = module.vpc.subnet_c_id
+  # subnet_c_id                = module.vpc.subnet_c_id
   vpc_id                     = module.vpc.vpc_id
   ecs_sg                     = module.ecs_fargate.ecs_sg
   db_engine                  = var.db_engine
@@ -160,7 +160,7 @@ module "vpc" {
   vpc_cidr_block      = var.vpc_cidr_block
   subnet_a_cidr_block = var.subnet_a_cidr_block
   subnet_b_cidr_block = var.subnet_b_cidr_block
-  subnet_c_cidr_block = var.subnet_c_cidr_block
+  # subnet_c_cidr_block = var.subnet_c_cidr_block
 }
 
 module "waf" {
@@ -178,7 +178,6 @@ module "redis" {
   vpc_id       = module.vpc.vpc_id
   subnet_a_id  = module.vpc.subnet_a_id
   subnet_b_id  = module.vpc.subnet_b_id
-  subnet_c_id  = module.vpc.subnet_c_id
   ecs_sg       = module.ecs_fargate.ecs_sg
 }
 

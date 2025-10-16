@@ -24,9 +24,9 @@ variable "subnet_b_cidr_block" {
   default = "10.0.2.0/24"
 }
 
-variable "subnet_c_cidr_block" {
-  default = "10.0.3.0/24"
-}
+# variable "subnet_c_cidr_block" {
+#   default = "10.0.3.0/24"
+# }
 
 ############ S3_IMAGE MODULE ################
 
