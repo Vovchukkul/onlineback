@@ -23,7 +23,6 @@ provider "aws" {
   region              = local.region
 }
 
-
 locals {
   prefix      = "${terraform.workspace}-${var.project_name}"
   environment = terraform.workspace
@@ -59,11 +58,11 @@ module "certificate" {
 
 }
 
-module "cloud_watch" {
-  source      = "./modules/cloud_watch"
-  common_tags = local.common_tags
-  prefix      = local.prefix
-}
+# module "cloud_watch" {
+#   source      = "./modules/cloud_watch"
+#   common_tags = local.common_tags
+#   prefix      = local.prefix
+# }
 
 module "ecr" {
   source      = "./modules/ecr"
@@ -71,24 +70,24 @@ module "ecr" {
   prefix      = local.prefix
 }
 
-module "ecs_fargate" {
-  source              = "./modules/ecs_fargate"
-  common_tags         = local.common_tags
-  prefix              = local.prefix
-  subnet_a_id         = module.vpc.subnet_a_id
-  subnet_b_id         = module.vpc.subnet_b_id
-  subnet_c_id         = module.vpc.subnet_c_id
-  lb_target_group_arn = module.load_balancer.lb_target_group_arn
-  vpc_id              = module.vpc.vpc_id
-  alb_sg              = module.load_balancer.alb_sg
-  app_port            = var.app_port
-  task_cpu            = var.task_cpu
-  task_memory         = var.task_memory
-  task_desired_count  = var.task_desired_count
-  app_image           = var.app_image
-  region              = var.region
-  cf_log_group_name   = module.cloud_watch.cf_log_group_name
-}
+# module "ecs_fargate" {
+#   source              = "./modules/ecs_fargate"
+#   common_tags         = local.common_tags
+#   prefix              = local.prefix
+#   subnet_a_id         = module.vpc.subnet_a_id
+#   subnet_b_id         = module.vpc.subnet_b_id
+#   subnet_c_id         = module.vpc.subnet_c_id
+#   lb_target_group_arn = module.load_balancer.lb_target_group_arn
+#   vpc_id              = module.vpc.vpc_id
+#   alb_sg              = module.load_balancer.alb_sg
+#   app_port            = var.app_port
+#   task_cpu            = var.task_cpu
+#   task_memory         = var.task_memory
+#   task_desired_count  = var.task_desired_count
+#   app_image           = var.app_image
+#   region              = var.region
+#   cf_log_group_name   = module.cloud_watch.cf_log_group_name
+# }
 
 module "aws_iam" {
   source       = "./modules/iam"
@@ -106,7 +105,6 @@ module "img_bucket" {
   region           = var.region
   config_file_path = local.config_file_path
   project_name     = var.project_name
-
 }
 
 module "load_balancer" {
@@ -165,36 +163,36 @@ module "vpc" {
   subnet_c_cidr_block = var.subnet_c_cidr_block
 }
 
-module "waf" {
-  source      = "./modules/waf"
-  common_tags = local.common_tags
-  prefix      = local.prefix
-  aws_lb_arn  = module.load_balancer.aws_lb_arn
-}
+# module "waf" {
+#   source      = "./modules/waf"
+#   common_tags = local.common_tags
+#   prefix      = local.prefix
+#   aws_lb_arn  = module.load_balancer.aws_lb_arn
+# }
 
-module "redis" {
-  source       = "./modules/redis"
-  project_name = var.project_name
-  common_tags  = local.common_tags
-  prefix       = local.prefix
-  vpc_id       = module.vpc.vpc_id
-  subnet_a_id  = module.vpc.subnet_a_id
-  subnet_b_id  = module.vpc.subnet_b_id
-  subnet_c_id  = module.vpc.subnet_c_id
-  ecs_sg       = module.ecs_fargate.ecs_sg
-}
+# module "redis" {
+#   source       = "./modules/redis"
+#   project_name = var.project_name
+#   common_tags  = local.common_tags
+#   prefix       = local.prefix
+#   vpc_id       = module.vpc.vpc_id
+#   subnet_a_id  = module.vpc.subnet_a_id
+#   subnet_b_id  = module.vpc.subnet_b_id
+#   subnet_c_id  = module.vpc.subnet_c_id
+#   ecs_sg       = module.ecs_fargate.ecs_sg
+# }
 
-module "eventbridge" {
-  source = "./modules/eventbridge"
-  prefix = local.prefix
+# module "eventbridge" {
+#   source = "./modules/eventbridge"
+#   prefix = local.prefix
 
-  scheduler_backend_down_state      = var.scheduler_backend_down_state
-  scheduler_backend_down_expression = var.scheduler_backend_down_expression
+#   scheduler_backend_down_state      = var.scheduler_backend_down_state
+#   scheduler_backend_down_expression = var.scheduler_backend_down_expression
 
-  scheduler_backend_desired_count = var.scheduler_backend_desired_count
-  scheduler_backend_up_expression = var.scheduler_backend_up_expression
-  scheduler_backend_up_state      = var.scheduler_backend_up_state
+#   scheduler_backend_desired_count = var.scheduler_backend_desired_count
+#   scheduler_backend_up_expression = var.scheduler_backend_up_expression
+#   scheduler_backend_up_state      = var.scheduler_backend_up_state
 
-  ecs_cluster_name         = module.ecs_fargate.cluster_name
-  ecs_backend_service_name = module.ecs_fargate.ecs_backend_service_name
-}
+#   ecs_cluster_name         = module.ecs_fargate.cluster_name
+#   ecs_backend_service_name = module.ecs_fargate.ecs_backend_service_name
+# }
