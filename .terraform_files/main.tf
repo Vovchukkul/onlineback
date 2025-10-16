@@ -70,24 +70,24 @@ module "ecr" {
   prefix      = local.prefix
 }
 
-# module "ecs_fargate" {
-#   source              = "./modules/ecs_fargate"
-#   common_tags         = local.common_tags
-#   prefix              = local.prefix
-#   subnet_a_id         = module.vpc.subnet_a_id
-#   subnet_b_id         = module.vpc.subnet_b_id
-#   subnet_c_id         = module.vpc.subnet_c_id
-#   lb_target_group_arn = module.load_balancer.lb_target_group_arn
-#   vpc_id              = module.vpc.vpc_id
-#   alb_sg              = module.load_balancer.alb_sg
-#   app_port            = var.app_port
-#   task_cpu            = var.task_cpu
-#   task_memory         = var.task_memory
-#   task_desired_count  = var.task_desired_count
-#   app_image           = var.app_image
-#   region              = var.region
-#   cf_log_group_name   = module.cloud_watch.cf_log_group_name
-# }
+module "ecs_fargate" {
+  source              = "./modules/ecs_fargate"
+  common_tags         = local.common_tags
+  prefix              = local.prefix
+  subnet_a_id         = module.vpc.subnet_a_id
+  subnet_b_id         = module.vpc.subnet_b_id
+  subnet_c_id         = module.vpc.subnet_c_id
+  lb_target_group_arn = module.load_balancer.lb_target_group_arn
+  vpc_id              = module.vpc.vpc_id
+  alb_sg              = module.load_balancer.alb_sg
+  app_port            = var.app_port
+  task_cpu            = var.task_cpu
+  task_memory         = var.task_memory
+  task_desired_count  = var.task_desired_count
+  app_image           = var.app_image
+  region              = var.region
+  cf_log_group_name   = module.cloud_watch.cf_log_group_name
+}
 
 module "aws_iam" {
   source       = "./modules/iam"
