@@ -36,16 +36,16 @@ resource "aws_subnet" "subnet_b" {
   tags = merge({ "Name" = "${var.prefix}-subnet-b" }, var.common_tags)
 }
 
-resource "aws_subnet" "subnet_c" {
-  vpc_id            = aws_vpc.vpc.id
-  cidr_block        = var.subnet_c_cidr_block
-  availability_zone = "${var.region}c"
+# resource "aws_subnet" "subnet_c" {
+#   vpc_id            = aws_vpc.vpc.id
+#   cidr_block        = var.subnet_c_cidr_block
+#   availability_zone = "${var.region}c"
 
-  assign_ipv6_address_on_creation = false
-  ipv6_cidr_block                 = cidrsubnet(aws_vpc.vpc.ipv6_cidr_block, 8, 2)
+#   assign_ipv6_address_on_creation = false
+#   ipv6_cidr_block                 = cidrsubnet(aws_vpc.vpc.ipv6_cidr_block, 8, 2)
 
-  tags = merge({ "Name" = "${var.prefix}-subnet-c" }, var.common_tags)
-}
+#   tags = merge({ "Name" = "${var.prefix}-subnet-c" }, var.common_tags)
+# }
 
 resource "aws_route_table" "route_table" {
   vpc_id = aws_vpc.vpc.id

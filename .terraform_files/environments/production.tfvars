@@ -2,8 +2,8 @@
 project_name           = "onlineback"                                         # Name of your project
 region                 = "us-west-1"                                      # Region where resources should be created
 cloudfront_price_class = "PriceClass_100" # Select one from a list 
-root_domain_name       = "react-phones.pp.ua"                                     # Your root domain name, don't use subdomain here
-img_domain_name        = "img.react-phones.pp.ua"                                 # Image subdomain
+root_domain_name       = "prod-react-phones.pp.ua"                                     # Your root domain name, don't use subdomain here
+img_domain_name        = "prod-img.react-phones.pp.ua"                                 # Image subdomain
 db_engine_version      = "16.3"
 db_instance_class      = "db.t4g.micro"
 db_storage             = 20
