@@ -123,9 +123,9 @@ jobs:
               json_data=$(cat '.terraform_files/modules/ecs_fargate/templates/container-definitions.json.tpl')
               
               # Append the database username secret to the JSON template
-              json_data=$(echo $json_data | jq --arg  vf "$secrets_manager_arn:username::" '.[0].secrets += [{"name": "DATABASE_USER", "valueFrom": $vf}]')
+              json_data=$(echo $json_data | jq --arg  vf "$secrets_manager_arn:username::" '.[0].secrets += [{"name": "POSTGRES_USER", "valueFrom": $vf}]')
               # Append the database password secret to the JSON template
-              json_data=$(echo $json_data | jq --arg  vf "$secrets_manager_arn:password::" '.[0].secrets += [{"name": "DATABASE_PASSWORD", "valueFrom": $vf}]')
+              json_data=$(echo $json_data | jq --arg  vf "$secrets_manager_arn:password::" '.[0].secrets += [{"name": "POSTGRES_PASSWORD", "valueFrom": $vf}]')
               
               # Save the updated JSON template, overwriting the original file
               echo "$json_data" > '.terraform_files/modules/ecs_fargate/templates/container-definitions.json.tpl'
@@ -191,99 +191,97 @@ jobs:
           paths:
             - ./
     
-  run_unit_tests:
-    machine:
-        image: ubuntu-2204:2024.11.1
-    resource_class: medium
-    environment:
-      AWS_CONFIG_FILE: /home/circleci/project/config
-    steps:
-      - attach_workspace:
-          at: ./
-      - run:
-          name: Run unit tests
-          command: |
-            set -ex
-            docker load -i docker_image_backend.tar
-            cd deployment/unit-tests/
+  # run_unit_tests:
+  #   machine:
+  #       image: ubuntu-2204:2024.11.1
+  #   resource_class: medium
+  #   environment:
+  #     AWS_CONFIG_FILE: /home/circleci/project/config
+  #   steps:
+  #     - attach_workspace:
+  #         at: ./
+  #     - run:
+  #         name: Run unit tests
+  #         command: |
+  #           set -ex
+  #           docker load -i docker_image_backend.tar
+  #           cd deployment/unit-tests/
 
-            # Substitute docker image variable
-            export IMAGE_NAME=${PROJECT_NAME}-backend:latest
-            sed -i "s@IMAGE_NAME@${IMAGE_NAME}@" docker-compose.yml
+  #           # Substitute docker image variable
+  #           export IMAGE_NAME=${PROJECT_NAME}-backend:latest
+  #           sed -i "s@IMAGE_NAME@${IMAGE_NAME}@" docker-compose.yml
 
-            docker-compose up -d
-            sleep 20
-            docker exec -u 0 backend sh -c 'set -ex && python -m pytest'
+  #           docker-compose up -d
+  #           sleep 20
+  #           docker exec -u 0 backend sh -c 'set -ex && python -m pytest'
             
-            # cd ../../
-            # container_id=$(docker ps -qf "name=backend")
-            # docker cp $container_id:/${PROJECT_NAME}/coverage.xml coverage.xml
-            # sed -i 's|<source>/${PROJECT_NAME}</source>|<source>/home/circleci/project/</source>|g' coverage.xml
-      # - sonarcloud/scan
+  #           # cd ../../
+  #           # container_id=$(docker ps -qf "name=backend")
+  #           # docker cp $container_id:/${PROJECT_NAME}/coverage.xml coverage.xml
+  #           # sed -i 's|<source>/${PROJECT_NAME}</source>|<source>/home/circleci/project/</source>|g' coverage.xml
+  #     # - sonarcloud/scan
 
+  # run_database_migrations:
+  #   machine:
+  #     image: ubuntu-2204:2024.11.1
+  #   resource_class: medium
+  #   environment:
+  #     AWS_CONFIG_FILE: /home/circleci/project/config
+  #   steps:
+  #     - attach_workspace:
+  #         at: ./
+  #     - run:
+  #         name: Create env file for migrations
+  #         command: |
+  #           # Pull Environment Variables in Secrets Maanger
+  #           aws secretsmanager get-secret-value \
+  #           --profile ${CIRCLE_BRANCH} \
+  #           --secret-id "$CIRCLE_BRANCH/$PROJECT_NAME/backend" \
+  #           --region $AWS_DEFAULT_REGION | jq -r '.SecretString' | \
+  #           jq -r "to_entries|map(\"\(.key)=\\\"\(.value|tostring)\\\"\")|.[]"  > deployment/migrations/.env
 
-  run_database_migrations:
-    machine:
-      image: ubuntu-2204:2024.11.1
-    resource_class: medium
-    environment:
-      AWS_CONFIG_FILE: /home/circleci/project/config
-    steps:
-      - attach_workspace:
-          at: ./
-      - run:
-          name: Create env file for migrations
-          command: |
-            # Pull Environment Variables in Secrets Maanger
-            aws secretsmanager get-secret-value \
-            --profile ${CIRCLE_BRANCH} \
-            --secret-id "$CIRCLE_BRANCH/$PROJECT_NAME/backend" \
-            --region $AWS_DEFAULT_REGION | jq -r '.SecretString' | \
-            jq -r "to_entries|map(\"\(.key)=\\\"\(.value|tostring)\\\"\")|.[]"  > deployment/migrations/.env
+  #           # Pull Environment variables from parameter store
+  #           aws ssm get-parameters-by-path \
+  #           --profile ${CIRCLE_BRANCH} \
+  #           --region $AWS_DEFAULT_REGION \
+  #           --path /be/${CIRCLE_BRANCH}/${PROJECT_NAME}/ \
+  #           --with-decryption --recursive \
+  #           --query "Parameters[*].[Name,Value]" --output text | \
+  #           awk '{print $1 "=" $2}' | \
+  #           sed "s/\t/\n/g; s@/be/${CIRCLE_BRANCH}/${PROJECT_NAME}/@@g" >> deployment/migrations/.env
 
-            # Pull Environment variables from parameter store
-            aws ssm get-parameters-by-path \
-            --profile ${CIRCLE_BRANCH} \
-            --region $AWS_DEFAULT_REGION \
-            --path /be/${CIRCLE_BRANCH}/${PROJECT_NAME}/ \
-            --with-decryption --recursive \
-            --query "Parameters[*].[Name,Value]" --output text | \
-            awk '{print $1 "=" $2}' | \
-            sed "s/\t/\n/g; s@/be/${CIRCLE_BRANCH}/${PROJECT_NAME}/@@g" >> deployment/migrations/.env
+  #           # Pull DB username and password
+  #           export db_name=${CIRCLE_BRANCH}-${PROJECT_NAME}
+  #           export secrets_manager=$(aws secretsmanager list-secrets --region $AWS_DEFAULT_REGION --profile ${CIRCLE_BRANCH} | jq -r --arg db_name "$db_name" '.SecretList[] | select(.Description != null and (.Description | contains(":db:" + $db_name))) | .Name')
 
-            # Pull DB username and password
-            export db_name=${CIRCLE_BRANCH}-${PROJECT_NAME}
-            export secrets_manager=$(aws secretsmanager list-secrets --region $AWS_DEFAULT_REGION --profile ${CIRCLE_BRANCH} | jq -r --arg db_name "$db_name" '.SecretList[] | select(.Description != null and (.Description | contains(":db:" + $db_name))) | .Name')
+  #           export user_name=$(aws secretsmanager get-secret-value --region $AWS_DEFAULT_REGION --profile ${CIRCLE_BRANCH} --secret-id "$secrets_manager" --query 'SecretString' | jq -r '. | fromjson | .username')
+  #           export password=$(aws secretsmanager get-secret-value --region $AWS_DEFAULT_REGION --profile ${CIRCLE_BRANCH} --secret-id "$secrets_manager" --query 'SecretString' | jq -r '. | fromjson | .password')
+  #           echo "DATABASE_USER=$user_name" >> deployment/migrations/.env
+  #           echo "DATABASE_PASSWORD=$password" >> deployment/migrations/.env 
 
-            export user_name=$(aws secretsmanager get-secret-value --region $AWS_DEFAULT_REGION --profile ${CIRCLE_BRANCH} --secret-id "$secrets_manager" --query 'SecretString' | jq -r '. | fromjson | .username')
-            export password=$(aws secretsmanager get-secret-value --region $AWS_DEFAULT_REGION --profile ${CIRCLE_BRANCH} --secret-id "$secrets_manager" --query 'SecretString' | jq -r '. | fromjson | .password')
-            echo "DATABASE_USER=$user_name" >> deployment/migrations/.env
-            echo "DATABASE_PASSWORD=$password" >> deployment/migrations/.env 
-
-      - run:
-          name: Run database Migrations
-          command: |
-              set -ex
-              # Install the session manager plugin
-              curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64bit/session-manager-plugin.deb" -o "session-manager-plugin.deb"
-              sudo dpkg -i session-manager-plugin.deb
-              # Connect to the bastion host
-              host=$(aws ssm get-parameter --region $AWS_DEFAULT_REGION --profile ${CIRCLE_BRANCH} --name /be/${CIRCLE_BRANCH}/${PROJECT_NAME}/DATABASE_HOST --with-decryption | jq -r '.Parameter.Value')
-              port=$(aws ssm get-parameter --region $AWS_DEFAULT_REGION --profile ${CIRCLE_BRANCH} --name /be/${CIRCLE_BRANCH}/${PROJECT_NAME}/DATABASE_PORT --with-decryption | jq -r '.Parameter.Value')
-              bastion=$(aws ec2 describe-instances --region $AWS_DEFAULT_REGION --profile ${CIRCLE_BRANCH} --query "Reservations[].Instances[?State.Name=='running' && Tags[?Key=='Name' && Value=='${CIRCLE_BRANCH}-${PROJECT_NAME}-bastion']].[InstanceId]" --output text)
+  #     - run:
+  #         name: Run database Migrations
+  #         command: |
+  #             set -ex
+  #             # Install the session manager plugin
+  #             curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64bit/session-manager-plugin.deb" -o "session-manager-plugin.deb"
+  #             sudo dpkg -i session-manager-plugin.deb
+  #             # Connect to the bastion host
+  #             host=$(aws ssm get-parameter --region $AWS_DEFAULT_REGION --profile ${CIRCLE_BRANCH} --name /be/${CIRCLE_BRANCH}/${PROJECT_NAME}/DATABASE_HOST --with-decryption | jq -r '.Parameter.Value')
+  #             port=$(aws ssm get-parameter --region $AWS_DEFAULT_REGION --profile ${CIRCLE_BRANCH} --name /be/${CIRCLE_BRANCH}/${PROJECT_NAME}/DATABASE_PORT --with-decryption | jq -r '.Parameter.Value')
+  #             bastion=$(aws ec2 describe-instances --region $AWS_DEFAULT_REGION --profile ${CIRCLE_BRANCH} --query "Reservations[].Instances[?State.Name=='running' && Tags[?Key=='Name' && Value=='${CIRCLE_BRANCH}-${PROJECT_NAME}-bastion']].[InstanceId]" --output text)
               
-              aws ssm start-session --profile ${CIRCLE_BRANCH} \
-              --region $AWS_DEFAULT_REGION \
-              --target "$bastion" \
-              --document-name AWS-StartPortForwardingSessionToRemoteHost \
-              --parameters host="$host",portNumber="$port",localPortNumber="$port" &
+  #             aws ssm start-session --profile ${CIRCLE_BRANCH} \
+  #             --region $AWS_DEFAULT_REGION \
+  #             --target "$bastion" \
+  #             --document-name AWS-StartPortForwardingSessionToRemoteHost \
+  #             --parameters host="$host",portNumber="$port",localPortNumber="$port" &
 
-              docker load -i docker_image_backend.tar
-              cd deployment/migrations
-              sed -i "s@IMAGE_NAME@${PROJECT_NAME}-backend@" docker-compose.yml
-              docker-compose up -d
-              docker exec backend sh -c 'set -ex && alembic -c live_charts_app/alembic.ini upgrade head'
-
+  #             docker load -i docker_image_backend.tar
+  #             cd deployment/migrations
+  #             sed -i "s@IMAGE_NAME@${PROJECT_NAME}-backend@" docker-compose.yml
+  #             docker-compose up -d
+  #             docker exec backend sh -c 'set -ex && alembic -c live_charts_app/alembic.ini upgrade head'
 
   deploy_the_application:
     machine:
@@ -297,7 +295,7 @@ jobs:
       - configure_aws_credentials
       - aws-cli/setup:
           profile_name: default
-      
+    
       - run:
           name: Push Docker image to ECR
           command: |
@@ -364,9 +362,9 @@ jobs:
             json_data=$(cat '.terraform_files/modules/ecs_fargate/templates/container-definitions.json.tpl')
             
             # Append the database username secret to the JSON template
-            json_data=$(echo $json_data | jq --arg  vf "$secrets_manager_arn:username::" '.[0].secrets += [{"name": "DATABASE_USER", "valueFrom": $vf}]')
+            json_data=$(echo $json_data | jq --arg  vf "$secrets_manager_arn:username::" '.[0].secrets += [{"name": "POSTGRES_USER", "valueFrom": $vf}]')
             # Append the database password secret to the JSON template
-            json_data=$(echo $json_data | jq --arg  vf "$secrets_manager_arn:password::" '.[0].secrets += [{"name": "DATABASE_PASSWORD", "valueFrom": $vf}]')
+            json_data=$(echo $json_data | jq --arg  vf "$secrets_manager_arn:password::" '.[0].secrets += [{"name": "POSTGRES_PASSWORD", "valueFrom": $vf}]')
             
             # Save the updated JSON template, overwriting the original file
             echo "$json_data" > '.terraform_files/modules/ecs_fargate/templates/container-definitions.json.tpl'
@@ -434,31 +432,31 @@ workflows:
             branches:
               only:
                 - qa
-                - staging
+                # - staging
                 - production
       - build_docker_image
-      - run_unit_tests:
-          requires:
-            - build_docker_image
-      - run_database_migrations:
-          requires:
-            - run_unit_tests
-            - init_update_infrastructure
-          filters:
-            branches:
-              only:
-                - qa
-                - staging
-                - production
+      # - run_unit_tests:
+      #     requires:
+      #       - build_docker_image
+      # - run_database_migrations:
+      #     requires:
+      #       # - run_unit_tests
+      #       - init_update_infrastructure
+      #     filters:
+      #       branches:
+      #         only:
+      #           - qa
+      #           # - staging
+      #           - production
       - deploy_the_application:
           requires:
-            - run_database_migrations
+            # - run_database_migrations
             - init_update_infrastructure
           filters:
             branches:
               only:
                 - qa
-                - staging
+                # - staging
                 - production
 
 

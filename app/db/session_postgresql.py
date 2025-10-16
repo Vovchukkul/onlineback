@@ -14,7 +14,7 @@ USER = os.getenv("POSTGRES_USER", "admin")
 PASSWORD = os.getenv("POSTGRES_PASSWORD", "Super_Str0ng_Pa$$word")
 HOST = os.getenv("POSTGRES_HOST", "localhost")
 PORT = os.getenv("POSTGRES_PORT", "5432")
-DB_NAME = os.getenv("POSTGRES_DB", "exhibition_db")
+DB_NAME = os.getenv("POSTGRES_DB", "onlineback")
 DRIVER = "postgresql+asyncpg"
 
 POSTGRESQL_DATABASE_URL = f"{DRIVER}://{USER}:{PASSWORD}@{HOST}:{PORT}/{DB_NAME}"
