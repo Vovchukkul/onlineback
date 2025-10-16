@@ -163,36 +163,36 @@ module "vpc" {
   subnet_c_cidr_block = var.subnet_c_cidr_block
 }
 
-# module "waf" {
-#   source      = "./modules/waf"
-#   common_tags = local.common_tags
-#   prefix      = local.prefix
-#   aws_lb_arn  = module.load_balancer.aws_lb_arn
-# }
+module "waf" {
+  source      = "./modules/waf"
+  common_tags = local.common_tags
+  prefix      = local.prefix
+  aws_lb_arn  = module.load_balancer.aws_lb_arn
+}
 
-# module "redis" {
-#   source       = "./modules/redis"
-#   project_name = var.project_name
-#   common_tags  = local.common_tags
-#   prefix       = local.prefix
-#   vpc_id       = module.vpc.vpc_id
-#   subnet_a_id  = module.vpc.subnet_a_id
-#   subnet_b_id  = module.vpc.subnet_b_id
-#   subnet_c_id  = module.vpc.subnet_c_id
-#   ecs_sg       = module.ecs_fargate.ecs_sg
-# }
+module "redis" {
+  source       = "./modules/redis"
+  project_name = var.project_name
+  common_tags  = local.common_tags
+  prefix       = local.prefix
+  vpc_id       = module.vpc.vpc_id
+  subnet_a_id  = module.vpc.subnet_a_id
+  subnet_b_id  = module.vpc.subnet_b_id
+  subnet_c_id  = module.vpc.subnet_c_id
+  ecs_sg       = module.ecs_fargate.ecs_sg
+}
 
-# module "eventbridge" {
-#   source = "./modules/eventbridge"
-#   prefix = local.prefix
+module "eventbridge" {
+  source = "./modules/eventbridge"
+  prefix = local.prefix
 
-#   scheduler_backend_down_state      = var.scheduler_backend_down_state
-#   scheduler_backend_down_expression = var.scheduler_backend_down_expression
+  scheduler_backend_down_state      = var.scheduler_backend_down_state
+  scheduler_backend_down_expression = var.scheduler_backend_down_expression
 
-#   scheduler_backend_desired_count = var.scheduler_backend_desired_count
-#   scheduler_backend_up_expression = var.scheduler_backend_up_expression
-#   scheduler_backend_up_state      = var.scheduler_backend_up_state
+  scheduler_backend_desired_count = var.scheduler_backend_desired_count
+  scheduler_backend_up_expression = var.scheduler_backend_up_expression
+  scheduler_backend_up_state      = var.scheduler_backend_up_state
 
-#   ecs_cluster_name         = module.ecs_fargate.cluster_name
-#   ecs_backend_service_name = module.ecs_fargate.ecs_backend_service_name
-# }
+  ecs_cluster_name         = module.ecs_fargate.cluster_name
+  ecs_backend_service_name = module.ecs_fargate.ecs_backend_service_name
+}
